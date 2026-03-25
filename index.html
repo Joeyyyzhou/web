@@ -2620,6 +2620,90 @@
 
     const danmakuColors = ['danmaku-cyan', 'danmaku-purple', 'danmaku-rose', 'danmaku-gold', 'danmaku-blue'];
 
+    // Calculate safe lanes that avoid content elements
+    function getSafeLanes() {
+        const section = document.querySelector('.contact-section');
+        if (!section) return [30, 60, 90];
+        const sectionRect = section.getBoundingClientRect();
+        const sectionTop = sectionRect.top;
+        const sectionHeight = sectionRect.height;
+
+        // Collect all content elements' vertical occupied zones
+        const contentEls = section.querySelectorAll('.section-inner, .section-inner *');
+        const occupiedZones = [];
+        contentEls.forEach(el => {
+            const r = el.getBoundingClientRect();
+            if (r.height > 0 && r.width > 0) {
+                const top = r.top - sectionTop - 10; // 10px padding
+                const bottom = r.bottom - sectionTop + 10;
+                occupiedZones.push({ top, bottom });
+            }
+        });
+
+        // Also avoid danmaku input area at the bottom
+        const inputWrappers = section.querySelectorAll('.danmaku-input-wrapper, .danmaku-quick-wrapper');
+        inputWrappers.forEach(el => {
+            const r = el.getBoundingClientRect();
+            if (r.height > 0) {
+                occupiedZones.push({ top: r.top - sectionTop - 10, bottom: r.bottom - sectionTop + 10 });
+            }
+        });
+
+        // Merge overlapping zones
+        occupiedZones.sort((a, b) => a.top - b.top);
+        const merged = [];
+        for (const z of occupiedZones) {
+            if (merged.length && z.top <= merged[merged.length - 1].bottom) {
+                merged[merged.length - 1].bottom = Math.max(merged[merged.length - 1].bottom, z.bottom);
+            } else {
+                merged.push({ ...z });
+            }
+        }
+
+        // Find safe gaps between occupied zones
+        const lanes = [];
+        const danmakuHeight = 30;
+        // Top gap
+        if (merged.length > 0 && merged[0].top > danmakuHeight + 10) {
+            for (let y = 10; y < merged[0].top - danmakuHeight; y += danmakuHeight + 8) {
+                lanes.push(y);
+            }
+        }
+        // Gaps between content zones
+        for (let i = 0; i < merged.length - 1; i++) {
+            const gapTop = merged[i].bottom;
+            const gapBottom = merged[i + 1].top;
+            if (gapBottom - gapTop > danmakuHeight + 8) {
+                for (let y = gapTop + 4; y < gapBottom - danmakuHeight; y += danmakuHeight + 8) {
+                    lanes.push(y);
+                }
+            }
+        }
+        // Bottom gap
+        if (merged.length > 0) {
+            const lastBottom = merged[merged.length - 1].bottom;
+            if (sectionHeight - lastBottom > danmakuHeight + 10) {
+                for (let y = lastBottom + 4; y < sectionHeight - danmakuHeight; y += danmakuHeight + 8) {
+                    lanes.push(y);
+                }
+            }
+        }
+
+        return lanes.length > 0 ? lanes : [20, 50]; // Fallback
+    }
+
+    let cachedLanes = null;
+    let lanesTimer = null;
+    function getDanmakuLanes() {
+        if (!cachedLanes) {
+            cachedLanes = getSafeLanes();
+            // Refresh lanes after layout changes
+            clearTimeout(lanesTimer);
+            lanesTimer = setTimeout(() => { cachedLanes = null; }, 3000);
+        }
+        return cachedLanes;
+    }
+
     function createDanmaku(text, isNew = false) {
         const danmaku = document.createElement('div');
         danmaku.className = 'danmaku-item';
@@ -2632,11 +2716,12 @@
             danmaku.classList.add(danmakuColors[Math.floor(Math.random() * danmakuColors.length)]);
         }
         
-        const containerHeight = danmakuContainer.offsetHeight || 200;
-        const randomTop = Math.random() * (containerHeight - 50);
+        // Pick a safe lane that doesn't overlap with content
+        const lanes = getDanmakuLanes();
+        const randomLane = lanes[Math.floor(Math.random() * lanes.length)];
         const randomDuration = 10 + Math.random() * 6; // 10-16 seconds
         
-        danmaku.style.top = randomTop + 'px';
+        danmaku.style.top = randomLane + 'px';
         danmaku.style.animationDuration = randomDuration + 's';
         
         danmakuContainer.appendChild(danmaku);
