@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joey Portfolio - 交互演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .demo-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .demo-header h1 {
+            color: #fff;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .demo-header p {
+            color: rgba(255,255,255,0.7);
+            font-size: 1.1rem;
+        }
+
+        /* 浏览器窗口模拟 */
+        .browser-window {
+            background: #1e1e2e;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.6);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .browser-header {
+            background: #2d2d44;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .browser-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .browser-dot.red { background: #ff5f56; }
+        .browser-dot.yellow { background: #ffbd2e; }
+        .browser-dot.green { background: #27c93f; }
+
+        .browser-address {
+            flex: 1;
+            background: #1e1e2e;
+            border-radius: 6px;
+            padding: 6px 16px;
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
+            margin-left: 12px;
+        }
+
+        /* 视口内容 */
+        .viewport {
+            height: 600px;
+            overflow: hidden;
+            position: relative;
+            background: #0a0a0f;
+        }
+
+        .scroll-content {
+            position: absolute;
+            width: 100%;
+            animation: scrollThrough 25s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes scrollThrough {
+            0% { transform: translateY(0); }
+            8% { transform: translateY(0); }
+            15% { transform: translateY(-400px); }
+            20% { transform: translateY(-400px); }
+            28% { transform: translateY(-900px); }
+            33% { transform: translateY(-900px); }
+            40% { transform: translateY(-1400px); }
+            45% { transform: translateY(-1400px); }
+            52% { transform: translateY(-1900px); }
+            58% { transform: translateY(-1900px); }
+            65% { transform: translateY(-2400px); }
+            70% { transform: translateY(-2400px); }
+            78% { transform: translateY(-2900px); }
+            85% { transform: translateY(-2900px); }
+            92% { transform: translateY(-3400px); }
+            100% { transform: translateY(0); }
+        }
+
+        /* Hero Section */
+        .hero-section {
+            height: 600px;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(0,212,255,0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 70%, rgba(123,44,191,0.1) 0%, transparent 50%);
+            animation: gradientMove 8s ease-in-out infinite;
+        }
+
+        @keyframes gradientMove {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-20px, -20px) rotate(5deg); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-name {
+            font-size: 4rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf, #00d4ff);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s linear infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .hero-slogan {
+            color: rgba(255,255,255,0.8);
+            font-size: 1.3rem;
+            margin-top: 20px;
+            height: 30px;
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em;
+            background: #00d4ff;
+            margin-left: 4px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* About Section */
+        .about-section {
+            height: 600px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            padding: 60px 80px;
+            display: flex;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .about-image {
+            width: 280px;
+            height: 350px;
+            background: linear-gradient(135deg, #2d2d44, #1e1e2e);
+            border-radius: 16px;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .about-image::after {
+            content: '👤';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+            opacity: 0.3;
+        }
+
+        .about-content h2 {
+            color: #fff;
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+        }
+
+        .about-content p {
+            color: rgba(255,255,255,0.7);
+            line-height: 1.8;
+            font-size: 1rem;
+        }
+
+        .skill-tags {
+            display: flex;
+            gap: 10px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .skill-tag {
+            background: rgba(0,212,255,0.15);
+            color: #00d4ff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            border: 1px solid rgba(0,212,255,0.3);
+        }
+
+        /* Experience Section */
+        .experience-section {
+            min-height: 600px;
+            background: linear-gradient(180deg, #16213e 0%, #0f3460 100%);
+            padding: 60px 80px;
+        }
+
+        .section-title {
+            color: #fff;
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, #00d4ff, #7b2cbf);
+        }
+
+        .timeline-item {
+            margin-bottom: 30px;
+            padding: 20px 24px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            border-left: 3px solid #00d4ff;
+            position: relative;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -46px;
+            top: 24px;
+            width: 12px;
+            height: 12px;
+            background: #00d4ff;
+            border-radius: 50%;
+            box-shadow: 0 0 0 4px rgba(0,212,255,0.2);
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .timeline-title {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .timeline-date {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.85rem;
+        }
+
+        .timeline-company {
+            color: #00d4ff;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .timeline-desc {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Projects Section */
+        .projects-section {
+            min-height: 600px;
+            background: linear-gradient(180deg, #0f3460 0%, #1a1a2e 100%);
+            padding: 60px 80px;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .project-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .project-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .project-image {
+            height: 160px;
+            background: linear-gradient(135deg, #2d2d44, #1e1e2e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .project-info {
+            padding: 20px;
+        }
+
+        .project-title {
+            color: #fff;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .project-desc {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Tarot Section */
+        .tarot-section {
+            height: 600px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            padding: 60px 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tarot-container {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            margin-top: 40px;
+        }
+
+        .tarot-card {
+            width: 200px;
+            height: 300px;
+            background: linear-gradient(135deg, #2d2d44, #1e1e2e);
+            border-radius: 16px;
+            border: 2px solid rgba(123,44,191,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tarot-card::before {
+            content: '✨';
+            font-size: 60px;
+            opacity: 0.5;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .tarot-card:hover {
+            transform: scale(1.05) rotateY(10deg);
+            box-shadow: 0 20px 60px rgba(123,44,191,0.4);
+        }
+
+        .tarot-text {
+            color: #fff;
+            font-size: 1.2rem;
+            margin-top: 16px;
+        }
+
+        .tarot-hint {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+
+        /* Contact Section with Danmaku */
+        .contact-section {
+            height: 600px;
+            background: linear-gradient(180deg, #16213e 0%, #0a0a0f 100%);
+            padding: 60px 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .danmaku-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .danmaku-item {
+            position: absolute;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            white-space: nowrap;
+            animation: danmakuScroll 8s linear infinite;
+            opacity: 0.7;
+        }
+
+        .danmaku-item.cyan { background: rgba(0,212,255,0.2); color: #00d4ff; }
+        .danmaku-item.purple { background: rgba(123,44,191,0.2); color: #a855f7; }
+        .danmaku-item.rose { background: rgba(244,63,94,0.2); color: #f43f5e; }
+        .danmaku-item.gold { background: rgba(234,179,8,0.2); color: #eab308; }
+        .danmaku-item.blue { background: rgba(59,130,246,0.2); color: #3b82f6; }
+
+        @keyframes danmakuScroll {
+            from { transform: translateX(1200px); }
+            to { transform: translateX(-300px); }
+        }
+
+        .contact-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding-top: 80px;
+        }
+
+        .contact-title {
+            color: #fff;
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+        }
+
+        .contact-links {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .contact-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .contact-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: transform 0.3s, background 0.3s;
+        }
+
+        .contact-item:hover .contact-icon {
+            transform: scale(1.1);
+            background: rgba(0,212,255,0.2);
+        }
+
+        .contact-label {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+        }
+
+        /* 进度指示器 */
+        .progress-indicator {
+            position: fixed;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .progress-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transition: all 0.3s;
+        }
+
+        .progress-dot.active {
+            background: #00d4ff;
+            box-shadow: 0 0 10px #00d4ff;
+            transform: scale(1.3);
+        }
+
+        /* 导航栏 */
+        .nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(10,10,15,0.9);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 50;
+        }
+
+        .nav-logo {
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: #00d4ff;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .lang-toggle {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .lang-toggle:hover {
+            background: rgba(0,212,255,0.2);
+            border-color: #00d4ff;
+        }
+
+        .visitor-count {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.85rem;
+        }
+
+        .visitor-icon {
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .about-section,
+            .experience-section,
+            .projects-section,
+            .tarot-section,
+            .contact-section {
+                padding: 40px 20px;
+            }
+
+            .about-section {
+                flex-direction: column;
+            }
+
+            .about-image {
+                width: 200px;
+                height: 250px;
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tarot-container {
+                flex-direction: column;
+            }
+
+            .contact-links {
+                flex-direction: column;
+                gap: 24px;
+            }
+
+            .hero-name {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>Joey's Portfolio</h1>
+            <p>交互演示动画 - 自动循环展示网站所有功能</p>
+        </div>
+
+        <div class="browser-window">
+            <div class="browser-header">
+                <div class="browser-dot red"></div>
+                <div class="browser-dot yellow"></div>
+                <div class="browser-dot green"></div>
+                <div class="browser-address">joeyportfolio-zyx9a8plrd.edgeone.dev</div>
+            </div>
+
+            <div class="viewport">
+                <!-- 导航栏 -->
+                <div class="nav-bar">
+                    <div class="nav-logo">Joey</div>
+                    <div class="nav-links">
+                        <a href="#" class="nav-link">About</a>
+                        <a href="#" class="nav-link">Experience</a>
+                        <a href="#" class="nav-link">Projects</a>
+                        <a href="#" class="nav-link">Contact</a>
+                    </div>
+                    <div class="nav-actions">
+                        <div class="visitor-count">
+                            <span class="visitor-icon">👁</span>
+                            <span>1,234</span>
+                        </div>
+                        <button class="lang-toggle">中/EN</button>
+                    </div>
+                </div>
+
+                <div class="scroll-content">
+                    <!-- Hero Section -->
+                    <div class="hero-section">
+                        <div class="hero-content">
+                            <h1 class="hero-name">JOEY</h1>
+                            <div class="hero-slogan">
+                                Bridging Product & Operations<span class="typing-cursor"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- About Section -->
+                    <div class="about-section">
+                        <div class="about-image"></div>
+                        <div class="about-content">
+                            <h2>About Me</h2>
+                            <p>Product Operations professional with experience at ByteDance and Alibaba. Passionate about building efficient workflows and driving product growth through data-driven insights.</p>
+                            <div class="skill-tags">
+                                <span class="skill-tag">Product Strategy</span>
+                                <span class="skill-tag">Data Analysis</span>
+                                <span class="skill-tag">Project Management</span>
+                                <span class="skill-tag">Cross-functional Collaboration</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Experience Section -->
+                    <div class="experience-section">
+                        <h2 class="section-title">My Journey</h2>
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-header">
+                                    <span class="timeline-title">Product Operations Manager</span>
+                                    <span class="timeline-date">2023 - Present</span>
+                                </div>
+                                <div class="timeline-company">ByteDance</div>
+                                <div class="timeline-desc">Leading product operations for content creator platform, optimizing creator growth strategies.</div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-header">
+                                    <span class="timeline-title">Senior Product Operations Specialist</span>
+                                    <span class="timeline-date">2021 - 2023</span>
+                                </div>
+                                <div class="timeline-company">Alibaba</div>
+                                <div class="timeline-desc">Managed product lifecycle and coordinated cross-functional teams for e-commerce products.</div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-header">
+                                    <span class="timeline-title">Product Analyst</span>
+                                    <span class="timeline-date">2019 - 2021</span>
+                                </div>
+                                <div class="timeline-company">Tencent</div>
+                                <div class="timeline-desc">Analyzed user behavior data and provided insights for product optimization.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Projects Section -->
+                    <div class="projects-section">
+                        <h2 class="section-title">Featured Projects</h2>
+                        <div class="projects-grid">
+                            <div class="project-card">
+                                <div class="project-image">📊</div>
+                                <div class="project-info">
+                                    <h3 class="project-title">Creator Growth Dashboard</h3>
+                                    <p class="project-desc">Built comprehensive analytics dashboard for tracking creator performance metrics and growth trends.</p>
+                                </div>
+                            </div>
+                            <div class="project-card">
+                                <div class="project-image">🎯</div>
+                                <div class="project-info">
+                                    <h3 class="project-title">User Engagement Optimization</h3>
+                                    <p class="project-desc">Led initiative to improve user retention by 25% through data-driven feature improvements.</p>
+                                </div>
+                            </div>
+                            <div class="project-card">
+                                <div class="project-image">⚡</div>
+                                <div class="project-info">
+                                    <h3 class="project-title">Workflow Automation System</h3>
+                                    <p class="project-desc">Designed and implemented automated workflows reducing manual processes by 40%.</p>
+                                </div>
+                            </div>
+                            <div class="project-card">
+                                <div class="project-image">🌐</div>
+                                <div class="project-info">
+                                    <h3 class="project-title">Cross-border E-commerce Platform</h3>
+                                    <p class="project-desc">Managed product localization for international markets across 12 countries.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarot Section -->
+                    <div class="tarot-section">
+                        <h2 class="section-title">Career Tarot</h2>
+                        <div class="tarot-container">
+                            <div class="tarot-card">
+                                <div class="tarot-text">Click to Reveal</div>
+                                <div class="tarot-hint">Your career fortune awaits</div>
+                            </div>
+                            <div style="color: rgba(255,255,255,0.7); max-width: 300px;">
+                                <p>Interactive tarot card feature - click to reveal your career fortune with smooth 3D flip animation.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Section -->
+                    <div class="contact-section">
+                        <div class="danmaku-container">
+                            <div class="danmaku-item cyan" style="top: 50px; animation-delay: 0s;">Great portfolio! 🎉</div>
+                            <div class="danmaku-item purple" style="top: 120px; animation-delay: 2s;">Love the design ✨</div>
+                            <div class="danmaku-item rose" style="top: 190px; animation-delay: 4s;">Amazing work! 👏</div>
+                            <div class="danmaku-item gold" style="top: 260px; animation-delay: 1s;">So creative 🎨</div>
+                            <div class="danmaku-item blue" style="top: 330px; animation-delay: 3s;">Keep it up! 💪</div>
+                            <div class="danmaku-item cyan" style="top: 400px; animation-delay: 5s;">Impressive 🌟</div>
+                            <div class="danmaku-item purple" style="top: 470px; animation-delay: 2.5s;">Nice animations 🎬</div>
+                        </div>
+                        <div class="contact-content">
+                            <h2 class="contact-title">Let's Connect</h2>
+                            <div class="contact-links">
+                                <div class="contact-item">
+                                    <div class="contact-icon">📧</div>
+                                    <span class="contact-label">Email</span>
+                                </div>
+                                <div class="contact-item">
+                                    <div class="contact-icon">💼</div>
+                                    <span class="contact-label">LinkedIn</span>
+                                </div>
+                                <div class="contact-item">
+                                    <div class="contact-icon">🐙</div>
+                                    <span class="contact-label">GitHub</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能说明 -->
+        <div style="margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            <div style="background: rgba(255,255,255,0.05); padding: 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <div style="font-size: 2rem; margin-bottom: 12px;">✨</div>
+                <h3 style="color: #fff; margin-bottom: 8px;">渐变动画</h3>
+                <p style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">流动的渐变背景和文字效果</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <div style="font-size: 2rem; margin-bottom: 12px;">⌨️</div>
+                <h3 style="color: #fff; margin-bottom: 8px;">打字机效果</h3>
+                <p style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">Slogan逐字显示动画</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <div style="font-size: 2rem; margin-bottom: 12px;">🎴</div>
+                <h3 style="color: #fff; margin-bottom: 8px;">3D 塔罗牌</h3>
+                <p style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">悬停翻转动画效果</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 24px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <div style="font-size: 2rem; margin-bottom: 12px;">💬</div>
+                <h3 style="color: #fff; margin-bottom: 8px;">弹幕系统</h3>
+                <p style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">彩色弹幕滚动效果</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
