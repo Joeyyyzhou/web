@@ -2615,8 +2615,50 @@
     danmakuContainer.className = 'danmaku-container';
     document.querySelector('.contact-section').appendChild(danmakuContainer);
 
-    // Only real danmaku from users - no fake/sample data
-    let danmakuList = JSON.parse(localStorage.getItem('joey_danmaku') || '[]');
+    // Cloud-synced danmaku using jsonblob.com (free, no API key needed)
+    // All visitors share the same danmaku list, persistent across deployments
+    const DANMAKU_API = 'https://jsonblob.com/api/jsonBlob/019d298c-7575-7678-8134-b2ff073b6af4';
+
+    let danmakuList = [];
+    let danmakuLoaded = false;
+
+    // Load danmaku from cloud, fallback to localStorage
+    async function loadDanmakuFromCloud() {
+        try {
+            const res = await fetch(DANMAKU_API, {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                danmakuList = data.danmaku || [];
+                // Sync to localStorage as cache
+                localStorage.setItem('joey_danmaku', JSON.stringify(danmakuList));
+                danmakuLoaded = true;
+                return true;
+            }
+        } catch (e) {
+            console.log('Cloud load failed, using localStorage fallback');
+        }
+        // Fallback to localStorage
+        danmakuList = JSON.parse(localStorage.getItem('joey_danmaku') || '[]');
+        danmakuLoaded = true;
+        return false;
+    }
+
+    // Save danmaku to cloud
+    async function saveDanmakuToCloud() {
+        // Always save to localStorage as backup first
+        localStorage.setItem('joey_danmaku', JSON.stringify(danmakuList));
+        try {
+            await fetch(DANMAKU_API, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ danmaku: danmakuList })
+            });
+        } catch (e) {
+            console.log('Cloud save failed, saved to localStorage only');
+        }
+    }
 
     const danmakuColors = ['danmaku-cyan', 'danmaku-purple', 'danmaku-rose', 'danmaku-gold', 'danmaku-blue'];
 
@@ -2745,9 +2787,13 @@
         }
         // Stop after all messages shown — no loop
     }
-    if (danmakuList.length > 0) {
-        spawnDanmaku();
-    }
+
+    // Load from cloud first, then start spawning
+    loadDanmakuFromCloud().then(() => {
+        if (danmakuList.length > 0) {
+            spawnDanmaku();
+        }
+    });
 
     // Danmaku input
     const danmakuInputWrapper = document.createElement('div');
@@ -2789,7 +2835,7 @@
 
     function sendQuickDanmaku(text) {
         danmakuList.push(text);
-        localStorage.setItem('joey_danmaku', JSON.stringify(danmakuList));
+        saveDanmakuToCloud();
         createDanmaku(text, true);
     }
 
@@ -2798,7 +2844,7 @@
         if (text.length === 0 || text.length > 30) return;
         
         danmakuList.push(text);
-        localStorage.setItem('joey_danmaku', JSON.stringify(danmakuList));
+        saveDanmakuToCloud();
         createDanmaku(text, true);
         danmakuInput.value = '';
     }
